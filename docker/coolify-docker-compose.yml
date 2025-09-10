@@ -20,6 +20,24 @@ services:
       retries: 4
     restart: on-failure
 
+  redis:
+    container_name: bisheng-redis
+    image: redis:7.0.4
+    #ports:
+    #  - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/data/redis:/data
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/redis/redis.conf:/etc/redis.conf
+    command: redis-server /etc/redis.conf
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli ping|grep -e "PONG\|NOAUTH"']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
   office:
     container_name: bisheng-office
     image: onlyoffice/documentserver:7.2.2
@@ -68,8 +86,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-#      redis:
-#        condition: service_healthy
+      redis:
+        condition: service_healthy
       office:
         condition: service_started
   
@@ -100,8 +118,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-#      redis:
-#        condition: service_healthy
+      redis:
+        condition: service_healthy
       office:
         condition: service_started
 
